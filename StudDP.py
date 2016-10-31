@@ -112,13 +112,14 @@ class StudDP(object):
     Files are also downloaded if they do not exist locally.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, exit_on_loop):
         """
         Initializes the API and the update frequencies.
         """
         self.config = config
         self.interval = self.config['interval']
         self.api = APIWrapper(self.config)
+        self.exit_on_loop = exit_on_loop
 
     def __needs_download(self, document):
         """
@@ -133,7 +134,6 @@ class StudDP(object):
         """
         while True:
             LOG.info('Checking courses.')
-            exit_on_loop = False
             for course in self.api.get_courses():
                 title = course['title']
                 LOG.info('Course: %s', title)
@@ -147,7 +147,7 @@ class StudDP(object):
                         LOG.info('%s not chosen for download', title)
                     else:
                         LOG.info('%s chosen for download', title)
-                    exit_on_loop = True
+                    self.exit_on_loop = True
 
                 if download:
                     LOG.info('Downloading files for %s', title)
@@ -165,7 +165,7 @@ class StudDP(object):
             self.config['last_check'] = time.time()
             self.config['courses_selected'] = True
             LOG.info('Done checking.')
-            if exit_on_loop:
+            if self.exit_on_loop:
                 exit_func()
             time.sleep(self.interval)
 
@@ -220,6 +220,10 @@ if __name__ == "__main__":
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="log_to_stdout", default=False,
                       help="print log to stdout")
+    parser.add_option("-n", "--noloop",
+                      action="store_true", dest="noloop", default=False,
+                      help="exit after one run")
+
     (options, args) = parser.parse_args()
 
     setup_logging(options.log_to_stdout)
@@ -243,5 +247,5 @@ if __name__ == "__main__":
         CONFIG["courses_selected"] = False
         CONFIG["skip_courses"] = []
 
-    StudDP(CONFIG)()
+    StudDP(CONFIG,options.noloop)()
 
