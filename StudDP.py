@@ -179,7 +179,7 @@ def user_yes_no_query(question):
             sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
 
 
-def setup_logging():
+def setup_logging(log_to_stdout):
     """
     Sets up the loggin handlers.
     """
@@ -188,6 +188,11 @@ def setup_logging():
     file_handler_info.setLevel(logging.INFO)
     file_handler_info.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
     LOG.addHandler(file_handler_info)
+    if log_to_stdout:
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.INFO)
+        ch.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+        LOG.addHandler(ch)
     LOG.setLevel(logging.INFO)
     LOG.info('Logging initialized.')
 
@@ -207,7 +212,17 @@ def exit_func(*args):
 
 if __name__ == "__main__":
     import optparse
-    setup_logging()
+
+    parser = optparse.OptionParser()
+    parser.add_option("-c", "--config",
+                      action="store_true", dest="regenerate", default=False,
+                      help="regenerate config file")
+    parser.add_option("-v", "--verbose",
+                      action="store_true", dest="log_to_stdout", default=False,
+                      help="print log to stdout")
+    (options, args) = parser.parse_args()
+
+    setup_logging(options.log_to_stdout)
 
     if not os.path.exists(CONFIG_FILE):
         LOG.error('No %0s found. Please copy default_%0s to %0s and adjust it. Exiting.',
@@ -223,12 +238,6 @@ if __name__ == "__main__":
 
     with open(CONFIG_FILE, 'r') as rfile:
         CONFIG = json.load(rfile)
-
-    parser = optparse.OptionParser()
-    parser.add_option("-c", "--config",
-                      action="store_true", dest="regenerate", default=False,
-                      help="regenerate config file")
-    (options, args) = parser.parse_args()
 
     if options.regenerate:
         CONFIG["courses_selected"] = False
