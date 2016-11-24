@@ -12,6 +12,7 @@ import signal
 import time
 import sys
 import requests
+import re
 from distutils.util import strtobool
 
 LOG = logging.getLogger(__name__)
@@ -154,6 +155,7 @@ class StudDP(object):
                     documents = self.api.get_documents(course)
                     for document in documents:
                         if self.__needs_download(document):
+                            document["path"] = re.sub(":", "-", document["path"])
                             path = os.path.join(document['path'], document['filename'])
                             LOG.info('Downloading %s...', path)
                             os.makedirs(document['path'], exist_ok=True)
