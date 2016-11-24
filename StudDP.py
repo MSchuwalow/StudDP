@@ -155,7 +155,7 @@ class StudDP(object):
                     documents = self.api.get_documents(course)
                     for document in documents:
                         if self.__needs_download(document):
-                            document["path"] = re.sub(":", "-", document["path"])
+                            document["path"] = re.sub(":", "", document["path"]) # Salt that shit
                             path = os.path.join(document['path'], document['filename'])
                             LOG.info('Downloading %s...', path)
                             os.makedirs(document['path'], exist_ok=True)
