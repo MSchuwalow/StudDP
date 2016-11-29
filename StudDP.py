@@ -17,6 +17,7 @@ import optparse
 from distutils.util import strtobool
 import keyring
 import getpass
+from picker import Picker
 
 LOG = logging.getLogger(__name__)
 LOG_PATH = os.path.expanduser(os.path.join('~', '.studdp'))
@@ -146,15 +147,13 @@ class StudDP(object):
 
             if not self.config['courses_selected']:
                 LOG.info("Updating course selection")
-                self.config["selected_courses"] = []
-                for course in courses:
-                    title = course['title']
-                    if user_yes_no_query('Download files for %s?' % title):
-                        self.config['selected_courses'].append(title)
-                        LOG.info('%s chosen for download', title)
-                    else:
-                        LOG.info('%s not chosen for download', title)
-                        
+                titles = map( lambda x: x["title"], courses)
+                selection = Picker(title="Select courses to download", options=titles).getSelected()
+                if not selection:
+                    self.config["courses_selected"] = True
+                    exit_func()
+                self.config['selected_courses'] = selection
+
             LOG.info('Checking courses.')
             for course in courses:
                 title = course['title']
