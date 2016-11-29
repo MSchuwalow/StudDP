@@ -267,6 +267,5 @@ if __name__ == "__main__":
 
     if options.regenerate:
         CONFIG["courses_selected"] = False
-        CONFIG["skip_courses"] = []
 
     StudDP(CONFIG, options.noloop, options.on_windows, options.update)()
