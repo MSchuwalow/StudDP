@@ -148,7 +148,8 @@ class StudDP(object):
             if not self.config['courses_selected']:
                 LOG.info("Updating course selection")
                 titles = map( lambda x: x["title"], courses)
-                selection = Picker(title="Select courses to download", options=titles).getSelected()
+                selection = Picker(title="Select courses to download",
+                                   options=titles).getSelected()
                 if not selection:
                     self.config["courses_selected"] = True
                     exit_func()
@@ -190,16 +191,6 @@ def get_password(username):
         LOG.info("Adding new password to keyring")
         keyring.set_password("StudDP", username, password)
     return password
-
-
-def user_yes_no_query(question):
-    print('%s [y/n]' % question)
-    while True:
-        try:
-            return strtobool(input().lower())
-        except ValueError:
-            sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
-
 
 def setup_logging(log_to_stdout):
     """
