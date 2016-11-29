@@ -23,6 +23,7 @@ LOG = logging.getLogger(__name__)
 LOG_PATH = os.path.expanduser(os.path.join('~', '.studdp'))
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
 PID_FILE = os.path.expanduser(os.path.join('~', '.studdp', 'studdp.pid'))
+WIN_INVALID_CHARACTERS = [":", "<", ">", "|", "\?", "\*"]
 
 class APIWrapper(object):
     """
@@ -149,7 +150,7 @@ class StudDP(object):
                 LOG.info("Updating course selection")
                 titles = map( lambda x: x["title"], courses)
                 selection = Picker(title="Select courses to download",
-                                   options=titles).getSelected()
+                                   options=titles, checked=self.config['selected_courses']).getSelected()
                 if not selection:
                     self.config["courses_selected"] = True
                     exit_func()
@@ -164,9 +165,11 @@ class StudDP(object):
                     LOG.info('Downloading files for %s', title)
                     documents = self.api.get_documents(course)
                     for document in documents:
-                        if self.on_windows:
-                            document["path"] = re.sub(":", "", document["path"])
-                            document["filename"] = re.sub(":", "", document["filename"])
+                        if self.on_windows: # Salt Path
+                            for char in WIN_INVALID_CHARACTERS:
+                                print(char)
+                                document["path"] = re.sub(char, "", document["path"])
+                                document["filename"] = re.sub(char, "", document["filename"])
                         if self.__needs_download(document):
                             path = os.path.join(document['path'], document['filename'])
                             LOG.info('Downloading %s...', path)
@@ -227,7 +230,7 @@ def parse_args():
     parser = optparse.OptionParser()
     parser.add_option("-c", "--config",
                       action="store_true", dest="regenerate", default=False,
-                      help="regenerate config file")
+                      help="change course selection")
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="log_to_stdout", default=False,
                       help="print log to stdout")

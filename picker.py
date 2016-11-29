@@ -152,7 +152,7 @@ class Picker:
 
     def __init__(self, options, title='Select', arrow="-->",
                  footer="Space = toggle, Enter = accept, q = cancel",
-                 more="...", border="||--++++", c_selected="[X]", c_empty="[ ]"):
+                 more="...", border="||--++++", c_selected="[X]", c_empty="[ ]", checked="[ ]"):
         self.title = title
         self.arrow = arrow
         self.footer = footer
@@ -166,7 +166,7 @@ class Picker:
         for option in options:
             self.all_options.append({
                 "label": option,
-                "selected": False
+                "selected": True if (option in checked) else False
             })
             self.length = len(self.all_options)
 
