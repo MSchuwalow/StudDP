@@ -55,6 +55,7 @@ You will then see a ncurses interface which allows you to select the courses to 
 
 ![](https://cdn.rawgit.com/MSchuwalow/StudDP/develop/Screenshots/Curses.png)
 
+You can later use the -p and -c options to reconfigure your password and courses respectively.
 
 To run it as a daemon, use:
 
