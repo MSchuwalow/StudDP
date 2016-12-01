@@ -47,10 +47,21 @@ To get information about options, use:
 
 ```sh
 ./StudDP.py -h
+
+    Usage: StudDP.py [options]
+
+    Options:
+      -h, --help       show this help message and exit
+      -c, --config     change course selection
+      -v, --verbose    print log to stdout
+      -d, --daemonize  start as daemon
+      -w, --windows    remove characters that are forbidden in windows paths
+      -u, --update     update files when they are updated on StudIP
+      -p, --password   force password update
 ```
 
 When running it for the first time, it should prompt you for your StudIP password. It will then be stored in your login keyring. You therefore have to have
-a keyring installed.
+a keyring installed.\n
 You will then see a ncurses interface which allows you to select the courses to download.
 
 ![](https://cdn.rawgit.com/MSchuwalow/StudDP/develop/Screenshots/Curses.png)
