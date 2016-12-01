@@ -31,9 +31,9 @@ Modify the config.json:
 * `base_address` is the addres up to the root of your Rest.IP plugin. Leave out any trailing slashes.
 * `local_path` is your local folder where files should be downloaded to.
 * `interval` is the checking interval in seconds (so the default is 20 minutes).
-* `last_check` is the last timestamp when checks were performed. Leave this as -1.
-* `courses` is your list of courses to download. You set this when running the program first. Reset this to [] if you want to change your selection.
-* `courses_selected` tells the program if you have chosen your courses. Leave this to false, reset to true if you want to change your selection.
+* `last_check` is the last timestamp when checks were performed. Leave this as -1. This is set automatically.
+* `courses_selected` tells the program if you have chosen your courses. This is set automatically.
+* `courses` is your list of courses to download. You set this when running the program first. This is set automatically.
 
 ## Run
 
@@ -68,7 +68,7 @@ You will then see a ncurses interface which allows you to select the courses to 
 
 You can later use the -p and -c options to reconfigure your password and courses respectively.
 
-## Running as a daemon 
+## Running as a daemon
 
 To run it as a daemon, use:
 
