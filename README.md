@@ -53,7 +53,7 @@ When running it for the first time, it should prompt you for your StudIP passwor
 a keyring installed.
 You will then see a ncurses interface which allows you to select the courses to download.
 
-![](https://cdn.rawgit.com/artur9010/lightdm-webkit-material/screenshoots/default.png)
+![](https://cdn.rawgit.com/MSchuwalow/StudDP/develop/Screenshots/Curses.png)
 
 
 To run it as a daemon, use:
