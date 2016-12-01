@@ -53,11 +53,11 @@ class Picker:
         )
 
     def sigwinch_handler(self, n, frame):
-        curses.endwin()
-        self.stdscr = curses.initscr()
-        self.stdscr.clear()
         self.window_height = shutil.get_terminal_size().lines - 10
         self.window_width = shutil.get_terminal_size().columns - 20
+        curses.endwin()
+        self.stdscr.clear()
+        self.stdscr = curses.initscr()
         self.win = curses.newwin(
             5 + self.window_height,
             self.window_width,
