@@ -68,6 +68,7 @@ You will then see a ncurses interface which allows you to select the courses to 
 
 You can later use the -p and -c options to reconfigure your password and courses respectively.
 
+
 To run it as a daemon, use:
 
 ```sh
