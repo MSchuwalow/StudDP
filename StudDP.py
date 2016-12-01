@@ -17,6 +17,7 @@ import optparse
 from distutils.util import strtobool
 import keyring
 import getpass
+import atexit
 from picker import Picker
 
 LOG = logging.getLogger(__name__)
@@ -119,14 +120,14 @@ class StudDP(object):
     Files are also downloaded if they do not exist locally.
     """
 
-    def __init__(self, config, api_helper, exit_on_loop=True, on_windows=True, update=False):
+    def __init__(self, config, api_helper, daemonize=False, on_windows=False, update=False):
         """
         Initializes the API and the update frequencies.
         """
         self.config = config
         self.interval = self.config['interval']
         self.api = api_helper
-        self.exit_on_loop = exit_on_loop
+        self.daemonize = daemonize
         self.on_windows = on_windows
         self.update = update
 
@@ -153,7 +154,7 @@ class StudDP(object):
                                    options=titles, checked=self.config['selected_courses']).getSelected()
                 if not selection:
                     self.config["courses_selected"] = True
-                    _exit_func()
+                    return
                 self.config['selected_courses'] = selection
 
             LOG.info('Checking courses.')
@@ -181,8 +182,8 @@ class StudDP(object):
             self.config['last_check'] = time.time()
             self.config['courses_selected'] = True
             LOG.info('Done checking.')
-            if self.exit_on_loop:
-                _exit_func()
+            if not self.daemonize:
+                return
             time.sleep(self.interval)
 
 def get_password(username, force_update=False):
@@ -223,7 +224,6 @@ def _exit_func(*args):
         json.dump(CONFIG, wfile, sort_keys=True, indent=4 * ' ')
     os.unlink(PID_FILE)
     LOG.info('Exiting.')
-    exit(0)
 
 def _parse_args():
     parser = optparse.OptionParser()
@@ -234,7 +234,7 @@ def _parse_args():
                       action="store_true", dest="log_to_stdout", default=False,
                       help="print log to stdout")
     parser.add_option("-d", "--daemonize",
-                      action="store_false", dest="noloop", default=True,
+                      action="store_true", dest="daemonize", default=False,
                       help="start as daemon")
     parser.add_option("-w", "--windows",
                       action="store_true", dest="on_windows", default=False,
@@ -257,8 +257,10 @@ if __name__ == "__main__":
                   *([CONFIG_FILE]*3))
         exit(1)
 
-    for sig in [signal.SIGINT, signal.SIGTERM]:
-        signal.signal(sig, _exit_func)
+    # for sig in [signal.SIGINT, signal.SIGTERM]:
+    #     signal.signal(sig, _exit_func)
+
+    atexit.register(_exit_func)
 
     os.makedirs(os.path.dirname(PID_FILE), exist_ok=True)
     with open(PID_FILE, 'w') as pid_file:
@@ -275,4 +277,4 @@ if __name__ == "__main__":
 
     api_helper = APIWrapper((username, password), CONFIG["base_address"], CONFIG["local_path"])
 
-    StudDP(CONFIG, api_helper, options.noloop, options.on_windows, options.update_courses)()
+    StudDP(CONFIG, api_helper, options.daemonize, options.on_windows, options.update_courses)()
