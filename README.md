@@ -3,7 +3,7 @@ StudDP is a file downloader for [Stud.IP](http://studip.de/). It uses the
 [Stud.IP: Rest.IP](http://studip.github.io/studip-rest.ip/) plugin to download files
 when they changed or are not existent on the file system.
 
-## SetUp
+## Setup
 
 To set it up, do the following:
 
@@ -31,9 +31,9 @@ Modify the config.json:
 * `base_address` is the addres up to the root of your Rest.IP plugin. Leave out any trailing slashes.
 * `local_path` is your local folder where files should be downloaded to.
 * `interval` is the checking interval in seconds (so the default is 20 minutes).
-* `last_check` is the last timestamp when checks were performed. Leave this as -1. This is set automatically.
+* `last_check` is the last timestamp when checks were performed. This is set automatically.
 * `courses_selected` tells the program if you have chosen your courses. This is set automatically.
-* `courses` is your list of courses to download. You set this when running the program first. This is set automatically.
+* `courses` is your list of courses to download. This is set automatically.
 
 ## Run
 
