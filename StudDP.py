@@ -195,7 +195,7 @@ def get_password(username, force_update=False):
         keyring.set_password("StudDP", username, password)
     return password
 
-def setup_logging(log_to_stdout=False):
+def _setup_logging(log_to_stdout=False):
     """
     Sets up the loggin handlers.
     """
@@ -250,17 +250,12 @@ def _parse_args():
 if __name__ == "__main__":
     (options, args) = _parse_args()
 
-    setup_logging(options.log_to_stdout)
+    _setup_logging(options.log_to_stdout)
 
     if not os.path.exists(CONFIG_FILE):
         LOG.error('No %0s found. Please copy default_%0s to %0s and adjust it. Exiting.',
                   *([CONFIG_FILE]*3))
         exit(1)
-
-    # for sig in [signal.SIGINT, signal.SIGTERM]:
-    #     signal.signal(sig, _exit_func)
-
-    atexit.register(_exit_func)
 
     os.makedirs(os.path.dirname(PID_FILE), exist_ok=True)
     with open(PID_FILE, 'w') as pid_file:
@@ -268,6 +263,8 @@ if __name__ == "__main__":
 
     with open(CONFIG_FILE, 'r') as rfile:
         CONFIG = json.load(rfile)
+
+    atexit.register(_exit_func)
 
     if options.regenerate:
         CONFIG["courses_selected"] = False
