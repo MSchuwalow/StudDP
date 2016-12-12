@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from distutils.core import setup
+from setuptools import setup
 from os.path import expanduser, join
-from shutil import copyfile
 home = expanduser("~")
-
-copyfile("studdp/default_config.json", "studdp/config.json")
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
     name='StudDP',
-    version='1.0',
+    version='1.1',
     author='Maxim Schuwalow',
     author_email='mschuwalow@uos.de',
     packages=['studdp'],
@@ -21,6 +18,7 @@ setup(
     license='MIT',
     description='StudIP file downloader in python',
     long_description=open('README.md').read(),
+    keywords = "StudIP Downloader Osnabrueck UOS utility",
     zip_safe=False,
     entry_points={
       "console_scripts": [
