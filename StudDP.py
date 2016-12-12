@@ -19,99 +19,13 @@ import keyring
 import getpass
 import atexit
 from picker import Picker
+from APIWrapper import APIWrapper
 
 LOG = logging.getLogger(__name__)
 LOG_PATH = os.path.expanduser(os.path.join('~', '.studdp'))
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
 PID_FILE = os.path.expanduser(os.path.join('~', '.studdp', 'studdp.pid'))
 WIN_INVALID_CHARACTERS = [":", "<", ">", "|", "\?", "\*"]
-
-class APIWrapper(object):
-    """
-    An API wrapper for the Stud.IP Rest.API.
-    See studip.github.io/studip-rest.ip/ for details.
-    """
-
-    def __init__(self, auth, base_address, local_path):
-        """
-        Initializes the API's auth and base address.
-        """
-        self.__auth = auth
-        self.__base_address = base_address
-        self.__local_path = os.path.expanduser(local_path)
-
-    def __url__(self, route):
-        """
-        Creates an URL from the configuration and the route.
-        """
-        return "{}{}".format(self.__base_address, route)
-
-    def __get(self, route, stream=False):
-        """
-        Performs a GET request with the authentication from the configuration.
-        """
-        try:
-            return requests.get(self.__url__(route), auth=self.__auth, stream=stream)
-        except (TimeoutError,
-                requests.packages.urllib3.exceptions.NewConnectionError,
-                requests.packages.urllib3.exceptions.MaxRetryError,
-                requests.exceptions.ConnectionError) as error:
-            LOG.error("Error on get %s: %s", route, error)
-            return
-
-    def get_courses(self):
-        """
-        Gets a list of courses.
-        """
-        try:
-            return json.loads(self.__get('/api/courses').text)['courses']
-        except (ValueError, AttributeError):
-            return []
-
-    def __get_course_folders(self, course):
-        """
-        Gets a list of document folders for a given course id.
-        """
-        try:
-            return json.loads(
-                self.__get('/api/documents/{}/folder'.format(course['course_id'])).text
-                )['folders']
-        except (ValueError, AttributeError):
-            return []
-
-    def get_documents(self, course):
-        """
-        Gets a list of documents and folders inside a folder.
-        """
-        documents = []
-        folders = self.__get_course_folders(course)
-        for i, folder in enumerate(folders):
-            folders[i]['path'] = os.path.join(self.__local_path, course['title'])
-
-        while folders:
-            folder = folders.pop()
-            try:
-                path = '/api/documents/{}/folder/{}' \
-                        .format(course['course_id'], folder['folder_id'])
-                temp = json.loads(self.__get(path).text)
-            except (ValueError, AttributeError):
-                LOG.error('Error on loading %s.', path)
-                continue
-
-            for key in ['folders', 'documents']:
-                for i in range(len(temp[key])):
-                    temp[key][i]['path'] = os.path.join(folder['path'],
-                                                        folder['name'])
-            documents += temp['documents']
-            folders += temp['folders']
-        return documents
-
-    def download_document(self, document, docfile):
-        """
-        Downloads the document to docfile.
-        """
-        shutil.copyfileobj(self.__get('/api/documents/{}/download'.format(document['document_id']),
-                                      stream=True).raw, docfile)
 
 class StudDP(object):
     """
@@ -131,7 +45,7 @@ class StudDP(object):
         self.on_windows = on_windows
         self.update = update
 
-    def __needs_download(self, document):
+    def _needs_download(self, document):
         """
         Checks if a download of the document is needed.
         """
@@ -160,25 +74,25 @@ class StudDP(object):
             LOG.info('Checking courses.')
             for course in courses:
                 title = course['title']
-                LOG.info('Course: %s', title)
+                LOG.debug('Course: %s', title)
 
                 if title in self.config['selected_courses']:
-                    LOG.info('Downloading files for %s', title)
+                    LOG.info('Checking files for %s', title)
                     documents = self.api.get_documents(course)
                     for document in documents:
                         if self.on_windows: # Salt Path
                             for char in WIN_INVALID_CHARACTERS:
                                 document["path"] = re.sub(char, "", document["path"])
                                 document["filename"] = re.sub(char, "", document["filename"])
-                        if self.__needs_download(document):
+                        if self._needs_download(document):
                             path = os.path.join(document['path'], document['filename'])
                             LOG.info('Downloading %s...', path)
                             os.makedirs(document['path'], exist_ok=True)
                             with open(path, 'wb') as docfile:
                                 self.api.download_document(document, docfile)
-                            LOG.info('Downloaded %s', path)
+                            LOG.debug('Saved %s', path)
                 else:
-                    LOG.info('Skipping files for %s', title)
+                    LOG.debug('Skipping files for %s', title)
             self.config['last_check'] = time.time()
             self.config['courses_selected'] = True
             LOG.info('Done checking.')
@@ -186,7 +100,28 @@ class StudDP(object):
                 return
             time.sleep(self.interval)
 
-def get_password(username, force_update=False):
+def _setup_logging(log_to_stdout=False):
+    """
+    Sets up the logging handlers.
+    """
+    os.makedirs(LOG_PATH, exist_ok=True)
+    file_handler_info = logging.FileHandler(os.path.join(LOG_PATH, 'info.log'))
+    file_handler_info.setLevel(logging.DEBUG)
+    file_handler_info.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    LOG.addHandler(file_handler_info)
+    if log_to_stdout:
+        out = logging.StreamHandler(sys.stdout)
+        out.setLevel(logging.INFO)
+        out.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+        LOG.addHandler(out)
+    err = logging.StreamHandler(sys.stderr)
+    err.setLevel(logging.ERROR)
+    err.setFormatter(logging.Formatter('%(name)s - %(levelname)s - %(message)s'))
+    LOG.addHandler(err)
+    LOG.setLevel(logging.DEBUG)
+    LOG.info('Logging initialized.')
+
+def _get_password(username, force_update=False):
     LOG.info("Querying for password")
     password = keyring.get_password("StudDP", username)
     if not password or force_update:
@@ -195,25 +130,7 @@ def get_password(username, force_update=False):
         keyring.set_password("StudDP", username, password)
     return password
 
-def _setup_logging(log_to_stdout=False):
-    """
-    Sets up the loggin handlers.
-    """
-    os.makedirs(LOG_PATH, exist_ok=True)
-    file_handler_info = logging.FileHandler(os.path.join(LOG_PATH, 'info.log'))
-    file_handler_info.setLevel(logging.INFO)
-    file_handler_info.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-    LOG.addHandler(file_handler_info)
-    if log_to_stdout:
-        ch = logging.StreamHandler(sys.stdout)
-        ch.setLevel(logging.INFO)
-        ch.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
-        LOG.addHandler(ch)
-    LOG.setLevel(logging.INFO)
-    LOG.info('Logging initialized.')
-
-
-def _exit_func(*args):
+def _exit_func():
     """
     Ensures clean exit by writing the current configuration file and
     deleting the pid file.
@@ -270,8 +187,10 @@ if __name__ == "__main__":
         CONFIG["courses_selected"] = False
 
     username = CONFIG["username"]
-    password = get_password(username, options.update_password)
+    password = _get_password(username, options.update_password)
 
-    api_helper = APIWrapper((username, password), CONFIG["base_address"], CONFIG["local_path"])
+    api_helper = APIWrapper((username, password), CONFIG["base_address"],
+                            CONFIG["local_path"])
 
-    StudDP(CONFIG, api_helper, options.daemonize, options.on_windows, options.update_courses)()
+    StudDP(CONFIG, api_helper, options.daemonize, options.on_windows,
+           options.update_courses)()
