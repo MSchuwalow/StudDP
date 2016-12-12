@@ -5,7 +5,7 @@ home = expanduser("~")
 
 setup(
     name='StudDP',
-    version='1.1.2',
+    version='1.1.4',
     author='Maxim Schuwalow',
     author_email='mschuwalow@uos.de',
     packages=['studdp'],
