@@ -82,7 +82,7 @@ class StudDP:
                 if title in self.config['selected_courses']:
                     LOG.info('Checking files for %s', title)
                     try:
-                        documents = self.api.get_documents(course)
+                        documents = self.api.get_documents(course, self.config['renaming'])
                     except Exception:
                         LOG.exception("Getting course %s failed. Stacktrace:" \
                                       % course["title"])

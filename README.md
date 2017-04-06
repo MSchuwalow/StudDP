@@ -12,7 +12,7 @@ Install via pip:
 pip install StudDP
 ```
 
-######  or alternatively:
+### or alternatively:
 
 ```sh
 git clone https://github.com/MSchuwalow/StudDP
@@ -109,4 +109,19 @@ To uninstall use:
 ```sh
 rm -rf StudDP
 rm -rf ~/.studdp
+```
+
+### Renaming feature
+
+To unclutter your file system from nasty long folder names
+and some senseless folders (like "Allgemeiner Dateiordner")
+include something like the following to your ./config/studdp/config.json:
+
+```json
+{
+   "renaming": {
+       "Course with long nasty name and (Lecture, Room X)": "Course A",
+       "Allgemeiner Dateiordner": ""
+   }
+}
 ```
