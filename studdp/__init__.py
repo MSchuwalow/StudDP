@@ -7,7 +7,8 @@ DEFAULT_CONFIG = {
     "interval": 1200,
     "last_check": -1,
     "courses_selected": False,
-    "selected_courses": []
+    "selected_courses": [],
+    "renaming": {}
 }
 
 

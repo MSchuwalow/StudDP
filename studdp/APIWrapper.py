@@ -71,14 +71,20 @@ class APIWrapper(object):
                                     % course['course_id']).text)['folders']
 
 
-    def get_documents(self, course):
+    def get_documents(self, course, renaming):
         """
         Gets a list of documents and folders inside a folder.
+        Renaming is a dict of course/folder names and associated substitutions.
         """
         documents = []
         folders = self.get_course_folders(course)
         for i, folder in enumerate(folders):
-            folders[i]['path'] = os.path.join(self.local_path, course['title'])
+            title = course['title']
+            if title in renaming:
+                title = renaming[title]
+            folders[i]['path'] = os.path.join(self.local_path, title)
+            if folder['name'] in renaming:
+                folders[i]['name'] = renaming[folder['name']]
 
         while folders:
             folder = folders.pop()
